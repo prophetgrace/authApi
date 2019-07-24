@@ -21,20 +21,22 @@ app.post('/api/login', (req,res) =>{
    
  })
 
- function verifyToken(req,res,next){
-     const bearerHeader = req.headers['authorization'];
-    if(typeof bearerHeader!== 'undefined'){
-    const bearer = bearerHeader.split(' ');
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
-    next
-     }else{
-         res.json({
-             message:'Access denied'
-         })
-     }
- }
-app.post('/api/posts',verifyToken, (req,res) =>{
+ const checkToken = (req, res, next) => {
+    const header = req.headers['authorization'];
+
+    if(typeof header !== 'undefined') {
+        const bearer = header.split(' ');
+        const token = bearer[1];
+
+        req.token = token;
+        next();
+    } else {
+        //If header is undefined return Forbidden (403)
+        res.sendStatus(403)
+    }
+}
+
+app.post('/api/posts',checkToken, (req,res) =>{
     jwt.verify(req.token, 'secretkey',(error,authData) =>{
         if(error){
             res.sendStatus(403)
